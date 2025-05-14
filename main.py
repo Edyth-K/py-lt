@@ -1,34 +1,8 @@
-from quickstart import *
+from google_api import *
 from constants import GLOBAL_DOC_ID
 import time
 
-def append_text(service, document_id, text):
-    """Append text to the end of the document."""
-    # First get the current document to find its end
-    document = service.documents().get(documentId=document_id).execute()
-    
-    # Find the end of the document
-    doc_content = document.get('body').get('content')
-    end_index = doc_content[-1].get('endIndex', 1)
-    
-    # Now append text at that location
-    requests = [
-        {
-            'insertText': {
-                'location': {
-                    'index': end_index - 1  # -1 because the last index is typically after the final paragraph mark
-                },
-                'text': text
-            }
-        }
-    ]
-    
-    result = service.documents().batchUpdate(
-        documentId=document_id, 
-        body={'requests': requests}
-    ).execute()
-    
-    return result
+
 
 def test_google_api():
     """Main function to demonstrate Google Docs API capabilities."""
@@ -83,12 +57,12 @@ def main():
         document_id = GLOBAL_DOC_ID
                
         # Add some text
-        for i in range(0, 5):
-            text = (f"\nTesting Loop Iteration. i = {i}\n\n") 
-            append_text(service, document_id, text)
-            time.sleep(5)
+        # for i in range(0, 5):
+        #     text = (f"\nTesting Loop Iteration. i = {i}\n\n") 
+        #     append_text(service, document_id, text)
+        #     time.sleep(5)
         
-        print(f"\nDocument created successfully! You can view it in your Google Drive.")
+        print(f"\nProgram Complete!")
         print(f"Document ID: {document_id}")
         print(f"Direct link: https://docs.google.com/document/d/{document_id}/edit")
         
