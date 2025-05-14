@@ -8,4 +8,5 @@ constants.py
 __pycache__/
 *.pyc
 
-/devlogs/template.*
+devlogs/
+template.md
