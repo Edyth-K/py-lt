@@ -1,6 +1,36 @@
 from quickstart import *
+from constants import GLOBAL_DOC_ID
+import time
 
-def main():
+def append_text(service, document_id, text):
+    """Append text to the end of the document."""
+    # First get the current document to find its end
+    document = service.documents().get(documentId=document_id).execute()
+    
+    # Find the end of the document
+    doc_content = document.get('body').get('content')
+    end_index = doc_content[-1].get('endIndex', 1)
+    
+    # Now append text at that location
+    requests = [
+        {
+            'insertText': {
+                'location': {
+                    'index': end_index - 1  # -1 because the last index is typically after the final paragraph mark
+                },
+                'text': text
+            }
+        }
+    ]
+    
+    result = service.documents().batchUpdate(
+        documentId=document_id, 
+        body={'requests': requests}
+    ).execute()
+    
+    return result
+
+def test_google_api():
     """Main function to demonstrate Google Docs API capabilities."""
     try:
         # Get credentials and build service
@@ -34,6 +64,29 @@ def main():
         
         # Create a table
         create_table(service, document_id, 3, 3)
+        
+        print(f"\nDocument created successfully! You can view it in your Google Drive.")
+        print(f"Document ID: {document_id}")
+        print(f"Direct link: https://docs.google.com/document/d/{document_id}/edit")
+        
+    except HttpError as err:
+        print(f"An error occurred: {err}")
+
+def main():
+    """Main function to demonstrate Google Docs API capabilities."""
+    try:
+        # Get credentials and build service
+        creds = get_credentials()
+        service = build("docs", "v1", credentials=creds)
+        
+        # Set document ID
+        document_id = GLOBAL_DOC_ID
+               
+        # Add some text
+        for i in range(0, 5):
+            text = (f"\nTesting Loop Iteration. i = {i}\n\n") 
+            append_text(service, document_id, text)
+            time.sleep(5)
         
         print(f"\nDocument created successfully! You can view it in your Google Drive.")
         print(f"Document ID: {document_id}")

@@ -2,3 +2,5 @@
 
 credentials.*
 token.*
+
+constants.py

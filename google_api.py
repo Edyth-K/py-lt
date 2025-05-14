@@ -216,3 +216,31 @@ def insert_bullet_list(service, document_id, items):
     except HttpError as error:
         print(f"An error occurred: {error}")
         return None
+    
+def append_text(service, document_id, text):
+    """Append text to the end of the document."""
+    # First get the current document to find its end
+    document = service.documents().get(documentId=document_id).execute()
+    
+    # Find the end of the document
+    doc_content = document.get('body').get('content')
+    end_index = doc_content[-1].get('endIndex', 1)
+    
+    # Now append text at that location
+    requests = [
+        {
+            'insertText': {
+                'location': {
+                    'index': end_index - 1  # -1 because the last index is typically after the final paragraph mark
+                },
+                'text': text
+            }
+        }
+    ]
+    
+    result = service.documents().batchUpdate(
+        documentId=document_id, 
+        body={'requests': requests}
+    ).execute()
+    
+    return result
