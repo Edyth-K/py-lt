@@ -4,3 +4,6 @@ credentials.*
 token.*
 
 constants.py
+
+__pycache__/
+*.pyc

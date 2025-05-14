@@ -217,6 +217,7 @@ def insert_bullet_list(service, document_id, items):
         print(f"An error occurred: {error}")
         return None
     
+
 def append_text(service, document_id, text):
     """Append text to the end of the document."""
     # First get the current document to find its end
@@ -225,7 +226,7 @@ def append_text(service, document_id, text):
     # Find the end of the document
     doc_content = document.get('body').get('content')
     end_index = doc_content[-1].get('endIndex', 1)
-    
+
     # Now append text at that location
     requests = [
         {
@@ -244,3 +245,88 @@ def append_text(service, document_id, text):
     ).execute()
     
     return result
+
+def get_document_content(service, document_id):
+    """
+    Retrieves the text content from a Google Document and returns it in a format
+    that can be used to insert into another document.
+    
+    Args:
+        service: Authenticated Google Docs service instance
+        document_id: ID of the document to retrieve content from
+        
+    Returns:
+        A list of structural elements (paragraphs, tables, etc.) in a format 
+        compatible with document.batchUpdate() requests
+    """
+    try:
+        # Get the complete document content
+        document = service.documents().get(documentId=document_id).execute()
+        
+        # Extract the document content
+        doc_content = document.get('body', {}).get('content', [])
+        
+        # Format the content for insertion into another document
+        insert_requests = []
+        
+        # Process each structural element (paragraphs, tables, etc.)
+        for element in doc_content:
+            # Skip the endOfSegmentMarker which appears at the end of documents
+            if 'endIndex' in element and 'startIndex' in element:
+                # Handle paragraph elements
+                if 'paragraph' in element:
+                    paragraph = element['paragraph']
+                    
+                    # Extract the text and text styles from paragraph elements
+                    paragraph_style = paragraph.get('paragraphStyle', {})
+                    elements = paragraph.get('elements', [])
+                    
+                    # For each text run in the paragraph
+                    for text_element in elements:
+                        if 'textRun' in text_element:
+                            text_run = text_element['textRun']
+                            content = text_run.get('content', '')
+                            text_style = text_run.get('textStyle', {})
+                            
+                            # Skip empty content
+                            if not content or content == '\n':
+                                continue
+                                
+                            # Create an insertText request
+                            insert_text = {
+                                'insertText': {
+                                    'text': content,
+                                    'endOfSegmentLocation': {
+                                        'segmentId': ''
+                                    }
+                                }
+                            }
+                            
+                            insert_requests.append(insert_text)
+                            
+                            # If there's styling to apply, create an updateTextStyle request
+                            if text_style:
+                                # Need to reference the range we just inserted
+                                # This will need adjustment in actual implementation
+                                pass
+                
+                # Handle tables (simplified - you may need more complex handling)
+                elif 'table' in element:
+                    # Process table content
+                    table = element['table']
+                    for row in table.get('tableRows', []):
+                        for cell in row.get('tableCells', []):
+                            for cell_content in cell.get('content', []):
+                                if 'paragraph' in cell_content:
+                                    # Process paragraphs within table cells
+                                    # Similar to above paragraph processing
+                                    pass
+                
+                # Handle other element types as needed
+                # (lists, images, etc.)
+        
+        return insert_requests
+    
+    except Exception as e:
+        print(f"Error retrieving document content: {e}")
+        return []

@@ -1,5 +1,5 @@
 from google_api import *
-from constants import GLOBAL_DOC_ID
+from constants import GLOBAL_DOC_ID, TEST_CONTENT
 import time
 
 
@@ -46,6 +46,28 @@ def test_google_api():
     except HttpError as err:
         print(f"An error occurred: {err}")
 
+def append_header(service, document_id, text):
+    """Append header to the start of the document."""
+
+    # Now append text at that location
+    requests = [
+        {
+            'insertText': {
+                'location': {
+                    'index': 1
+                },
+                'text': text
+            }
+        }
+    ]
+    
+    result = service.documents().batchUpdate(
+        documentId=document_id, 
+        body={'requests': requests}
+    ).execute()
+    
+    return result
+
 def main():
     """Main function to demonstrate Google Docs API capabilities."""
     try:
@@ -61,9 +83,16 @@ def main():
         #     text = (f"\nTesting Loop Iteration. i = {i}\n\n") 
         #     append_text(service, document_id, text)
         #     time.sleep(5)
+
+        #print(type(get_document_content(service, document_id)[0]))
         
-        print(f"\nProgram Complete!")
-        print(f"Document ID: {document_id}")
+        text = "sample header"
+
+        content = TEST_CONTENT
+        append_header(service, document_id, text)
+
+        # print(f"\nProgram Complete!")
+        # print(f"Document ID: {document_id}")
         print(f"Direct link: https://docs.google.com/document/d/{document_id}/edit")
         
     except HttpError as err:
